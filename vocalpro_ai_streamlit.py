@@ -1,38 +1,50 @@
+
 import streamlit as st
 from pedalboard import Pedalboard, Compressor, HighPassFilter, HighShelfFilter, Gain, NoiseGate
 import soundfile as sf
 import io
 
-# Configuração visual do App
 st.set_page_config(page_title="VocalPro AI", page_icon="🎙️")
 
 st.title("🎙️ VocalPro AI")
-st.subheader("Mixagem Profissional de Voz")
+st.write("Suba sua voz e clique no botão para mixar profissionalmente.")
 
 # Upload
-uploaded_file = st.file_uploader("Arraste o seu áudio aqui", type=["wav", "mp3"])
+uploaded_file = st.file_uploader("Escolha um arquivo de áudio", type=["wav", "mp3"])
 
 if uploaded_file is not None:
-    data, samplerate = sf.read(uploaded_file)
+    # Mostra o player do áudio original
     st.audio(uploaded_file, format='audio/wav')
-
-    if st.button("✨ Iniciar Mixagem"):
-        with st.spinner("Refinando a sua voz..."):
-            # Cadeia de sinal profissional (O segredo da qualidade)
+    
+    # BOTÃO QUE ESTÁ FALTANDO:
+    if st.button("✨ Iniciar Mixagem Profissional"):
+        with st.spinner("Processando áudio..."):
+            # Lendo o áudio
+            data, samplerate = sf.read(uploaded_file)
+            
+            # Criando a mixagem
             board = Pedalboard([
-                NoiseGate(threshold_db=-40), # Remove ruído de fundo
-                HighPassFilter(cutoff_frequency_hz=100), # Limpa graves desnecessários
-                Compressor(threshold_db=-18, ratio=4), # Estabiliza o volume
-                HighShelfFilter(cutoff_frequency_hz=8000, gain_db=5), # Dá brilho (Air)
-                Gain(gain_db=2) # Ajuste final de volume
+                NoiseGate(threshold_db=-40),
+                HighPassFilter(cutoff_frequency_hz=100),
+                Compressor(threshold_db=-18, ratio=4),
+                HighShelfFilter(cutoff_frequency_hz=8000, gain_db=5),
+                Gain(gain_db=2)
             ])
 
             vocal_mixado = board(data, samplerate)
 
+            # Preparando para download
             buffer = io.BytesIO()
             sf.write(buffer, vocal_mixado, samplerate, format='WAV')
             buffer.seek(0)
 
-            st.success("Mixagem finalizada!")
+            st.success("Mixagem concluída!")
             st.audio(buffer, format='audio/wav')
-            st.download_button(label="📥 Baixar Áudio Profissional", data=buffer, file_name="vocal_final_pro.wav", mime="audio/wav")
+            
+            # BOTÃO DE DOWNLOAD
+            st.download_button(
+                label="📥 Baixar Áudio Final",
+                data=buffer,
+                file_name="vocal_mixado.wav",
+                mime="audio/wav"
+            )
